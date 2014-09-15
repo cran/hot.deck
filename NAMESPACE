@@ -1,0 +1,2 @@
+import(mice)
+exportPattern("^[[:alpha:]]+")
