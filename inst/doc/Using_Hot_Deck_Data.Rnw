@@ -86,8 +86,13 @@ for(i in 1:length(out$data)){
 
 \subsection{Using Zelig}
 
-Now that we have an object of class \verb"mi" and \verb"list", Zelig can use those data to estimate a model: 
+In version $\geq 5.0$ of \verb"Zelig", the output from \verb"hot.deck" will have to be converted into a format that looks like Amelia's.  You can do this as follows: 
 
+<<hd2amelia, echo=T, include=T>>=
+out <- hd2amelia(out)
+@
+
+\noindent Then, with the output in the appropriate format, we can use \verb"Zelig" to do the modeling. 
 
 <<zel, echo=F, include=F>>=
 library(Zelig)
@@ -97,7 +102,7 @@ library(Zelig)
 <<zelig, echo=T, include=T>>=
 library(Zelig)
 z <- zelig(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
-    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$data, model="normal", cite=FALSE)
+    BRIT + POLRT + CWARCOW + IWARCOW2, data=out, model="normal", cite=FALSE)
 summary(z)
 @
 
@@ -113,9 +118,9 @@ You can use the \verb"MIcombine" command from the \verb"mitools" package to gene
 # initialize list
 results <- list()
 # loop over imputed datasets
-for(i in 1:length(out$data)){
+for(i in 1:length(out$imputations)){
     results[[i]] <- lm(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
-    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$data[[i]])
+    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$imputations[[i]])
 }
 library(mitools)
 summary(MIcombine(results))
@@ -130,7 +135,7 @@ The final method for combining results is to convert the data object returned by
 \begin{scriptsize}
 <<conv, echo=T, include=T>>=
 library(miceadds)
-out.mids <- datalist2mids(out$data)
+out.mids <- datalist2mids(out$imputations)
 s <- summary(pool(lm.mids(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
 BRIT + POLRT + CWARCOW + IWARCOW2, data=out.mids)))
 round(s, 4)

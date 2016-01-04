@@ -1,2 +1,3 @@
 import(mice)
+importFrom("stats", "aggregate", "cor", "na.omit")
 exportPattern("^[[:alpha:]]+")

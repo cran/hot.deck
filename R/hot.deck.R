@@ -9,9 +9,6 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
     if(weightedAffinity){
         warning("Affinity calculations made as a function of pearson correlations among variables coerced to class 'numeric'\ntake care when using this on categorical, especially nominal variables")
     }
-    if(impContinuous == "HD" & method == "p.draw"){
-        stop("Hot Deck imputation of continuous values can only be used with the best cell method\n")
-    }
 # DA 9/10/14: If IDvars is specified, remove them from the data and save in a different file. 
     if(!is.null(IDvars)){
         IDdata <- data[, which(names(data) %in% IDvars), drop=FALSE]
@@ -37,6 +34,12 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
 	alldisc <- is.discrete(data, cutoff)
 	allmiss <- which(is.na(data), arr.ind=TRUE)
 	cont.miss <- allmiss[-which(allmiss[,2] %in% disc.miss), ]
+# DA 10/2/14: moved the warning here in response to Toby's problem where the error was getting tripped
+# even though there was no continuous data.  This goes a setp further and doesn't trip the warning unless
+# there is any continuous data with missing observations.
+    if(impContinuous == "HD" & method == "p.draw" & length(cont.miss) > 0){
+        stop("Hot Deck imputation of continuous values can only be used with the best cell method\n")
+    }
 	whichna <- which(is.na(data), arr.ind=TRUE)
     if(impContinuous == "mice"){
 	    whichna <- whichna[which(whichna[,2] %in% disc.miss), ]
@@ -82,11 +85,8 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
         }
 
     }
-# DA 9/5/14: added condition any(!alldisc) so that scaling of the dataset only happens if there are continuous variables to scale.
-    if(any(!alldisc)){
 # DA 9/10/14: changed result of scaleContinuous here to tmp from data so that the draws for the donors will not come from the scaled, but from the unscaled data. 
-	    tmp <- scaleContinuous(data, alldisc, sdx=1/sdCutoff)
-    }
+    tmp <- scaleContinuous(data, alldisc, sdx=1/sdCutoff)
 	numdata <- sapply(1:ncol(tmp), function(i)as.numeric(tmp[,i]))
 	R <- abs(cor(numdata, use="pairwise"))
 	diag(R) <- 0

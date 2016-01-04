@@ -1,7 +1,7 @@
 %% DA, 9/5/14: Changed order of arguments to impContinuous so that HD is the default
 \name{hot.deck}
 \alias{hot.deck}
-\title{Multiple Hot Deck Imputation}
+\title{Multiple Hot-Deck Imputation}
 \description{
 This function performs multiple hot deck imputation on an input data frame with missing observations using either the \dQuote{best cell} method (default) or the \dQuote{probabilistic draw} method as described in Cranmer and Gill (2013). This technique is best suited for missingness in discrete variables, though it also performs well on continuous missing data.
 }

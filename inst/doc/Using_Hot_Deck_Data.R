@@ -50,39 +50,45 @@ for(i in 1:length(out$data)){
 
 
 ###################################################
-### code chunk number 6: zel
+### code chunk number 6: hd2amelia
+###################################################
+out <- hd2amelia(out)
+
+
+###################################################
+### code chunk number 7: zel
 ###################################################
 library(Zelig)
 
 
 ###################################################
-### code chunk number 7: zelig
+### code chunk number 8: zelig
 ###################################################
 library(Zelig)
 z <- zelig(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
-    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$data, model="normal", cite=FALSE)
+    BRIT + POLRT + CWARCOW + IWARCOW2, data=out, model="normal", cite=FALSE)
 summary(z)
 
 
 ###################################################
-### code chunk number 8: mods
+### code chunk number 9: mods
 ###################################################
 # initialize list
 results <- list()
 # loop over imputed datasets
-for(i in 1:length(out$data)){
+for(i in 1:length(out$imputations)){
     results[[i]] <- lm(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
-    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$data[[i]])
+    BRIT + POLRT + CWARCOW + IWARCOW2, data=out$imputations[[i]])
 }
 library(mitools)
 summary(MIcombine(results))
 
 
 ###################################################
-### code chunk number 9: conv
+### code chunk number 10: conv
 ###################################################
 library(miceadds)
-out.mids <- datalist2mids(out$data)
+out.mids <- datalist2mids(out$imputations)
 s <- summary(pool(lm.mids(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
 BRIT + POLRT + CWARCOW + IWARCOW2, data=out.mids)))
 round(s, 4)
