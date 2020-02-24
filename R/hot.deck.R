@@ -35,7 +35,7 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
 	allmiss <- which(is.na(data), arr.ind=TRUE)
 	cont.miss <- allmiss[-which(allmiss[,2] %in% disc.miss), ]
 # DA 10/2/14: moved the warning here in response to Toby's problem where the error was getting tripped
-# even though there was no continuous data.  This goes a setp further and doesn't trip the warning unless
+# even though there was no continuous data.  This goes a step further and doesn't trip the warning unless
 # there is any continuous data with missing observations.
     if(impContinuous == "HD" & method == "p.draw" & length(cont.miss) > 0){
         stop("Hot Deck imputation of continuous values can only be used with the best cell method\n")

@@ -80,17 +80,15 @@ for(i in 1:length(out$imputations)){
     results[[i]] <- lm(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
     BRIT + POLRT + CWARCOW + IWARCOW2, data=out$imputations[[i]])
 }
-library(mitools)
-summary(MIcombine(results))
+summary(mitools::MIcombine(results))
 
 
 ###################################################
 ### code chunk number 10: conv
 ###################################################
-library(miceadds)
-out.mids <- datalist2mids(out$imputations)
-s <- summary(pool(lm.mids(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
+out.mids <- miceadds::datalist2mids(out$imputations)
+s <- summary(mice::pool(mice::lm.mids(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
 BRIT + POLRT + CWARCOW + IWARCOW2, data=out.mids)))
-round(s, 4)
+print(s, digits=4)
 
 
