@@ -82,32 +82,31 @@ for(i in 1:length(out$data)){
 @
 
 \end{scriptsize}
-\section{Running Models on Multiple Hot Decking Result}
-
-\subsection{Using Zelig}
-
-In version $\geq 5.0$ of \verb"Zelig", the output from \verb"hot.deck" will have to be converted into a format that looks like Amelia's.  You can do this as follows: 
-
-<<hd2amelia, echo=T, include=T>>=
-out <- hd2amelia(out)
-@
-
-\noindent Then, with the output in the appropriate format, we can use \verb"Zelig" to do the modeling. 
-
-<<zel, echo=F, include=F>>=
-library(Zelig)
-@
-
-\begin{scriptsize}
-<<zelig, echo=T, include=T>>=
-library(Zelig)
-z <- zelig(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
-    BRIT + POLRT + CWARCOW + IWARCOW2, data=out, model="normal", cite=FALSE)
-summary(z)
-@
-
-\end{scriptsize}
-Note that the summary indicates that the results have been combined across 5 multiply imputed datasets. 
+% \section{Running Models on Multiple Hot Decking Result}
+% 
+% \subsection{Using Zelig}
+% 
+% In version $\geq 5.0$ of \verb"Zelig", the output from \verb"hot.deck" will have to be converted into a format that looks like Amelia's.  You can do this as follows: 
+% 
+% <<hd2amelia, echo=T, include=T>>=
+% @
+% 
+% \noindent Then, with the output in the appropriate format, we can use \verb"Zelig" to do the modeling. 
+% 
+% <<zel, echo=F, include=F>>=
+% library(Zelig)
+% @
+% 
+% \begin{scriptsize}
+% <<zelig, echo=T, include=T>>=
+% library(Zelig)
+% z <- zelig(AI ~ lagAI + pctchgPCGNP + PCGNP + pctchgLPOP + LPOP + MIL2 + LEFT + 
+%     BRIT + POLRT + CWARCOW + IWARCOW2, data=out, model="normal", cite=FALSE)
+% summary(z)
+% @
+% 
+% \end{scriptsize}
+% Note that the summary indicates that the results have been combined across 5 multiply imputed datasets. 
 
 \subsection{Using MIcombine}
 
@@ -116,6 +115,7 @@ You can use the \verb"MIcombine" command from the \verb"mitools" package to gene
 \begin{scriptsize}
 <<mods, echo=T, include=T>>=
 # initialize list
+out <- hd2amelia(out)
 results <- list()
 # loop over imputed datasets
 for(i in 1:length(out$imputations)){
