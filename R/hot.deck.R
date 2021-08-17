@@ -1,15 +1,54 @@
+#' @title Multiple Hot Deck Imputation.
+#'
+#' @description
+#' This function performs multiple hot deck imputation on an input data frame with missing observations using either the \dQuote{best cell} method (default) or
+#' the \dQuote{probabilistic draw} method as described in Cranmer and Gill (2013). This technique is best suited for missingness in discrete variables, though it also performs well on continuous missing data.
+#'
+#' @usage hot.deck(data, m = 5, method = c("best.cell", "p.draw"), cutoff = 10, sdCutoff = 1,
+#' optimizeSD = FALSE, optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE,
+#' impContinuous = c("HD", "mice"), IDvars = NULL, ...)
+#'
+#' @param data A data frame with missing values to be imputed using multiple hot deck imputation.
+#' @param m Number of imputed datasets required.
+#' @param method Method used to draw donors based on affinity either \dQuote{best.cell} (the default) or \dQuote{p.draw} for probabilistic draw.
+#' @param cutoff A numeric scalar such that any variable with fewer than \code{cutoff} unique non-missing values will be considered discrete and necessarily imputed with hot deck imputation.
+#' @param sdCutoff Number of standard deviations between observations such that observations fewer than \code{sdCutoff} standard deviations away from each other are considered sufficiently close to be a match, otherwise they are considered too far away to be a match.
+#' @param optimizeSD Logical indicating whether the \code{sdCutoff} parameter should be optimized such that the smallest possible value is chosen that produces no thin cells from which to draw donors.  Thin cells are those where the number of donors is less than \code{m}.
+#' @param optimStep The size of the steps in the optimization if \code{optimizeSD} is \code{TRUE}.
+#' @param optimStop The value at which optimization should stop if it has not already found a value that produces no thin cells.  If this value is reached and thin cells still exist, a warning will be returned, though the routine will continue using \code{optimStop} as \code{sdCutoff}.
+#' @param weightedAffinity Logical indicating whether a correlation-weighted affinity score should be used.
+#' @param impContinuous Character string indicating how continuous missing data should be imputed.  Valid options are \dQuote{HD} (the default) in which case hot-deck imputation will be used, or \dQuote{mice} in which case multiple imputation by chained equations will be used.
+#' @param IDvars A character vector of variable names not to be used in the imputation, but to be included in the final imputed datasets.
+#' @param ... Optional additional arguments to be passed down to the \code{mice} routine.
+#'
+#' @return The output is a list with the following elements:
+#' \itemize{
+#'   \item{data}{An object of class \code{mi} which contains \code{m} imputed datasets.}
+#'   \item{affinity}{A matrix of affinity scores see \code{\link{affinity}}.}
+#'   \item{donors}{A list of donors for each missing observation based on the affinity score.}
+#'   \item{draws}{The \code{m} observations drawn from donors that were used for the multiple imputations.}
+#'   \item{max.emp.aff}{Normalization constant for each row of affinity scores; the maximum possible value of the affinity scores if correlation-weighting is used.}
+#'   \item{max.the.aff}{Normalization constant for each row of affinity scores; the number of columns in the original data. }
+#'   }
+#'
+#' @importFrom stats aggregate as.formula coef cor na.omit
+#' @examples
+#' data(D)
+#' hot.deck(D)
+#'
+#' @export
 # DA 9/10/14: Added argument for IDvars (ID variables that are not to be used in imputation, but should remain in data)
 hot.deck <-
-function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, optimizeSD = FALSE, 
-    optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE, impContinuous = c("HD", "mice"), 
+function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, optimizeSD = FALSE,
+    optimStep = 0.1, optimStop = 5, weightedAffinity = FALSE, impContinuous = c("HD", "mice"),
     IDvars = NULL, ...){
 	method <- match.arg(method)
     impContinuous <- match.arg(impContinuous)
-# DA 9/15/14 Added warning about weighted affinity calculations and correlations among or with categorical variables. 
+# DA 9/15/14 Added warning about weighted affinity calculations and correlations among or with categorical variables.
     if(weightedAffinity){
         warning("Affinity calculations made as a function of pearson correlations among variables coerced to class 'numeric'\ntake care when using this on categorical, especially nominal variables")
     }
-# DA 9/10/14: If IDvars is specified, remove them from the data and save in a different file. 
+# DA 9/10/14: If IDvars is specified, remove them from the data and save in a different file.
     if(!is.null(IDvars)){
         IDdata <- data[, which(names(data) %in% IDvars), drop=FALSE]
         data <- data[,-which(names(data) %in% IDvars), drop=FALSE]
@@ -69,7 +108,7 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
             }
         	if(any(!is.finite(aff))){aff[which(!is.finite(aff), arr.ind=TRUE)] <- 0}
 
-# DA 9/5/14: added the following 4 lines to ensure that only valid donors (i.e., those with observed values) have 
+# DA 9/5/14: added the following 4 lines to ensure that only valid donors (i.e., those with observed values) have
 # non-zero affinity scores.
             wnadat <- matrix(1, nrow=nrow(data), ncol=ncol(data))
             wnadat[which(is.na(data), arr.ind=TRUE)] <- 0
@@ -85,14 +124,14 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
         }
 
     }
-# DA 9/10/14: changed result of scaleContinuous here to tmp from data so that the draws for the donors will not come from the scaled, but from the unscaled data. 
+# DA 9/10/14: changed result of scaleContinuous here to tmp from data so that the draws for the donors will not come from the scaled, but from the unscaled data.
     tmp <- scaleContinuous(data, alldisc, sdx=1/sdCutoff)
 	numdata <- sapply(1:ncol(tmp), function(i)as.numeric(tmp[,i]))
 	R <- abs(cor(numdata, use="pairwise"))
 	diag(R) <- 0
 	max.emp.aff <- 	apply(R, 2, sum)[whichna[,2]] # new
 	max.the.aff <- rep(dim(R)[2] - 1, nrow(whichna)) # new
-	
+
 # DA 9/5/14: Commented out 2 lines below because I changed the looping mechanism for the affinity calculation
     # aff <- t(apply(whichna, 1, function(x)affinity(numdata, x[1], x[2], R, weightedAffinity)))
     # aff[which(!is.finite(aff), arr.ind=TRUE)] <- 0
@@ -110,7 +149,7 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
     }
 	if(any(!is.finite(aff))){aff[which(!is.finite(aff), arr.ind=TRUE)] <- 0}
 
-# DA 9/5/14: added the following 4 lines to ensure that only valid donors (i.e., those with observed values) have 
+# DA 9/5/14: added the following 4 lines to ensure that only valid donors (i.e., those with observed values) have
 # non-zero affinity scores.
     wnadat <- matrix(1, nrow=nrow(data), ncol=ncol(data))
     wnadat[which(is.na(data), arr.ind=TRUE)] <- 0
@@ -135,8 +174,8 @@ function(data, m = 5, method=c("best.cell", "p.draw"), cutoff=10, sdCutoff=1, op
 			inp.D[[md]][whichna[i,1], whichna[i,2]] <- draws[[i]][md]
 		}
 		if(length(cont.miss) > 0 & impContinuous == "mice"){
-			mice.D <- mice(inp.D[[md]], m = 1, ...)
-			res[[md]] <- complete(mice.D)
+			mice.D <- mice::mice(inp.D[[md]], m = 1, ...)
+			res[[md]] <- tidyr::complete(mice.D)
 		}
 		else{
 			res[[md]] <- inp.D[[md]]

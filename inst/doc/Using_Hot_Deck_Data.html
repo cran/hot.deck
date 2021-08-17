@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Skyler Cranmer, Jeff Gill, Natalie Jackson, Andreas Murr, David A. Armstrong II, Simon Heuberger" />
+
+<meta name="date" content="2021-08-17" />
+
+<title>Using Multiple Hot Deck Data Sets for Inference</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using Multiple Hot Deck Data Sets for Inference</h1>
+<h4 class="author">Skyler Cranmer, Jeff Gill, Natalie Jackson, Andreas Murr, David A. Armstrong II, Simon Heuberger</h4>
+<h4 class="date">August 17, 2021</h4>
+
+
+
+<p>This document will walk you through some of the methods you could use to generate pooled model results that account for both sampling variability and across imputation variability. The package <code>hot.deck</code> does not come with a set of functions to do inference, so we will show you how you could use the data generated by <code>hot.deck</code> in combination with <code>glm.mids</code> (and similarly <code>lm.mids</code>) from the <code>mice</code> package, <code>zelig</code> from the <code>Zelig</code> package and by using <code>MIcombine</code> from the <code>mitools</code> package on a list of model objects.</p>
+<div id="generating-imputations" class="section level1" number="1">
+<h1 number="1"><span class="header-section-number">1</span> Generating Imputations</h1>
+<p>The data we will use come from <span class="citation">Poe, Tate, and Keith (1999)</span> dealing with democracy and state repression. First we need to call the <code>hot.deck</code> routine on the dataset.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(hot.deck)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">data</span>(isq99)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>out &lt;-<span class="st"> </span><span class="kw">hot.deck</span>(isq99, <span class="dt">sdCutoff=</span><span class="dv">3</span>, <span class="dt">IDvars =</span> <span class="kw">c</span>(<span class="st">&quot;IDORIGIN&quot;</span>, <span class="st">&quot;YEAR&quot;</span>))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="co">#&gt; Warning in hot.deck(isq99, sdCutoff = 3, IDvars = c(&quot;IDORIGIN&quot;, &quot;YEAR&quot;)): 52 observations with no observed data.  These observations were removed</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="co">#&gt; Warning in hot.deck(isq99, sdCutoff = 3, IDvars = c(&quot;IDORIGIN&quot;, &quot;YEAR&quot;)): 45 of 4661 imputations with # donors &lt; 5, consider increasing sdCutoff or using method=&#39;p.draw&#39;</span></span></code></pre></div>
+<p>This shows us that there are still 45 observations with fewer than 5 donors. Using a different method or further widening the <code>sdCutoff</code> parameter may alleviate the problem. If you want to see the frequency distribution of the number of donors, you could look at:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>numdonors &lt;-<span class="st"> </span><span class="kw">sapply</span>(out<span class="op">$</span>donors, length)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>numdonors &lt;-<span class="st"> </span><span class="kw">sapply</span>(out<span class="op">$</span>donors, length)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>numdonors &lt;-<span class="st"> </span><span class="kw">ifelse</span>(numdonors <span class="op">&gt;</span><span class="st"> </span><span class="dv">5</span>, <span class="dv">6</span>, numdonors)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>numdonors &lt;-<span class="st"> </span><span class="kw">factor</span>(numdonors, <span class="dt">levels=</span><span class="dv">1</span><span class="op">:</span><span class="dv">6</span>, <span class="dt">labels=</span><span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="st">&quot;&gt;5&quot;</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="kw">table</span>(numdonors)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="co">#&gt; numdonors</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="co">#&gt;    1    2    3    4    5   &gt;5 </span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="co">#&gt;   18   10   11    6   20 4596</span></span></code></pre></div>
+<p>Before running a model, three variables have to be created from those existing. Generally, if variables are deterministic functions of other variables (e.g., transformations, lags, etc…) it is advisable to impute the constituent variables of the calculations and then do the calculations after the fact. Here, we need to lag the <code>AI</code> variable and create percentage change variables for both population and per-capita GNP. First, to create the lag of <code>AI</code>, <code>PCGNP</code> and <code>LPOP</code>. To do this, we will make a little function.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>tscslag &lt;-<span class="st"> </span><span class="cf">function</span>(dat, x, id, time){</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  obs &lt;-<span class="st"> </span><span class="kw">apply</span>(dat[, <span class="kw">c</span>(id, time)], <span class="dv">1</span>, paste, <span class="dt">collapse=</span><span class="st">&quot;.&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  tm1 &lt;-<span class="st"> </span>dat[[time]] <span class="op">-</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  lagobs &lt;-<span class="st"> </span><span class="kw">apply</span>(<span class="kw">cbind</span>(dat[[id]], tm1), <span class="dv">1</span>, paste, <span class="dt">collapse=</span><span class="st">&quot;.&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>  lagx &lt;-<span class="st"> </span>dat[<span class="kw">match</span>(lagobs, obs), x]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>}</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(out<span class="op">$</span>data)){</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>  out<span class="op">$</span>data[[i]]<span class="op">$</span>lagAI &lt;-<span class="st"> </span><span class="kw">tscslag</span>(out<span class="op">$</span>data[[i]], <span class="st">&quot;AI&quot;</span>, <span class="st">&quot;IDORIGIN&quot;</span>, <span class="st">&quot;YEAR&quot;</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>  out<span class="op">$</span>data[[i]]<span class="op">$</span>lagPCGNP &lt;-<span class="st"> </span><span class="kw">tscslag</span>(out<span class="op">$</span>data[[i]], <span class="st">&quot;PCGNP&quot;</span>, <span class="st">&quot;IDORIGIN&quot;</span>, <span class="st">&quot;YEAR&quot;</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>  out<span class="op">$</span>data[[i]]<span class="op">$</span>lagLPOP &lt;-<span class="st"> </span><span class="kw">tscslag</span>(out<span class="op">$</span>data[[i]], <span class="st">&quot;LPOP&quot;</span>, <span class="st">&quot;IDORIGIN&quot;</span>, <span class="st">&quot;YEAR&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Now, we can use the lagged values of <code>PCGNP</code> and <code>LPOP</code>, to create percentage change variables:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(out<span class="op">$</span>data)){</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  out<span class="op">$</span>data[[i]]<span class="op">$</span>pctchgPCGNP &lt;-<span class="st"> </span><span class="kw">with</span>(out<span class="op">$</span>data[[i]], <span class="kw">c</span>(PCGNP<span class="op">-</span>lagPCGNP)<span class="op">/</span>lagPCGNP)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>  out<span class="op">$</span>data[[i]]<span class="op">$</span>pctchgLPOP &lt;-<span class="st"> </span><span class="kw">with</span>(out<span class="op">$</span>data[[i]], <span class="kw">c</span>(LPOP<span class="op">-</span>lagLPOP)<span class="op">/</span>lagLPOP)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>}</span></code></pre></div>
+<div id="using-micombine" class="section level2" number="1.1">
+<h2 number="1.1"><span class="header-section-number">1.1</span> Using MIcombine</h2>
+<p>You can use the <code>MIcombine</code> command from the <code>mitools</code> package to generate inferences, too. Here, you have to produce a list of model estimates and the function will combine across the different results.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co"># initialize list</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>out &lt;-<span class="st"> </span><span class="kw">hd2amelia</span>(out)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>results &lt;-<span class="st"> </span><span class="kw">list</span>()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="co"># loop over imputed datasets</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(out<span class="op">$</span>imputations)){</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>    results[[i]] &lt;-<span class="st"> </span><span class="kw">lm</span>(AI <span class="op">~</span><span class="st"> </span>lagAI <span class="op">+</span><span class="st"> </span>pctchgPCGNP <span class="op">+</span><span class="st"> </span>PCGNP <span class="op">+</span><span class="st"> </span>pctchgLPOP <span class="op">+</span><span class="st"> </span>LPOP <span class="op">+</span><span class="st"> </span>MIL2 <span class="op">+</span><span class="st"> </span>LEFT <span class="op">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a><span class="st">    </span>BRIT <span class="op">+</span><span class="st"> </span>POLRT <span class="op">+</span><span class="st"> </span>CWARCOW <span class="op">+</span><span class="st"> </span>IWARCOW2, <span class="dt">data=</span>out<span class="op">$</span>imputations[[i]])</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>}</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a><span class="kw">summary</span>(mitools<span class="op">::</span><span class="kw">MIcombine</span>(results))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a><span class="co">#&gt; Multiple imputation results:</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a><span class="co">#&gt;       MIcombine.default(results)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a><span class="co">#&gt;                   results           se        (lower        upper) missInfo</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a><span class="co">#&gt; (Intercept)  5.331437e-01 1.590137e-01  2.081119e-01  8.581754e-01     41 %</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a><span class="co">#&gt; lagAI        4.631427e-01 1.865951e-02  4.256578e-01  5.006277e-01     31 %</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a><span class="co">#&gt; pctchgPCGNP  5.988383e-03 3.892269e-03 -2.488344e-03  1.446511e-02     63 %</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a><span class="co">#&gt; PCGNP       -2.136767e-05 3.184249e-06 -2.772946e-05 -1.500588e-05     27 %</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a><span class="co">#&gt; pctchgLPOP  -6.311582e-01 1.425422e+00 -3.993216e+00  2.730900e+00     80 %</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a><span class="co">#&gt; LPOP         7.487820e-02 8.753472e-03  5.759435e-02  9.216205e-02     17 %</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a><span class="co">#&gt; MIL2         1.015658e-01 4.301407e-02  1.333586e-02  1.897957e-01     42 %</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a><span class="co">#&gt; LEFT        -1.628915e-01 5.421410e-02 -2.756770e-01 -5.010597e-02     48 %</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a><span class="co">#&gt; BRIT        -1.287129e-01 3.114049e-02 -1.898496e-01 -6.757634e-02      8 %</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true"></a><span class="co">#&gt; POLRT       -7.204190e-02 9.919891e-03 -9.221483e-02 -5.186898e-02     38 %</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true"></a><span class="co">#&gt; CWARCOW      6.237819e-01 5.715956e-02  5.096580e-01  7.379058e-01     27 %</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true"></a><span class="co">#&gt; IWARCOW2     1.814699e-01 5.570487e-02  7.133305e-02  2.916067e-01     18 %</span></span></code></pre></div>
+</div>
+<div id="using-mids" class="section level2" number="1.2">
+<h2 number="1.2"><span class="header-section-number">1.2</span> Using mids</h2>
+<p>The final method for combining results is to convert the data object returned by the <code>hot.deck</code> function to an object of class <code>mids</code>. This can be done with the <code>datalist2mids</code> function from the <code>miceadds</code> package.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>out.mids &lt;-<span class="st"> </span>miceadds<span class="op">::</span><span class="kw">datalist2mids</span>(out<span class="op">$</span>imputations)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="co">#&gt; Warning: Number of logged events: 1</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>s &lt;-<span class="st"> </span><span class="kw">summary</span>(mice<span class="op">::</span><span class="kw">pool</span>(mice<span class="op">::</span><span class="kw">lm.mids</span>(AI <span class="op">~</span><span class="st"> </span>lagAI <span class="op">+</span><span class="st"> </span>pctchgPCGNP <span class="op">+</span><span class="st"> </span>PCGNP <span class="op">+</span><span class="st"> </span>pctchgLPOP <span class="op">+</span><span class="st"> </span>LPOP <span class="op">+</span><span class="st"> </span>MIL2 <span class="op">+</span><span class="st"> </span>LEFT <span class="op">+</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>BRIT <span class="op">+</span><span class="st"> </span>POLRT <span class="op">+</span><span class="st"> </span>CWARCOW <span class="op">+</span><span class="st"> </span>IWARCOW2, <span class="dt">data=</span>out.mids)))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="co">#&gt; Warning: Use with(imp, lm(yourmodel).</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="kw">print</span>(s, <span class="dt">digits=</span><span class="dv">4</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="co">#&gt;           term   estimate std.error statistic      df   p.value</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="co">#&gt; 1  (Intercept)  5.383e-01 2.046e-01    2.6310  10.390 2.439e-02</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="co">#&gt; 2        lagAI  4.694e-01 2.087e-02   22.4870  22.843 0.000e+00</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a><span class="co">#&gt; 3  pctchgPCGNP  1.182e-03 5.107e-03    0.2315   6.972 8.236e-01</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="co">#&gt; 4        PCGNP -1.998e-05 3.511e-06   -5.6909  24.624 6.669e-06</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a><span class="co">#&gt; 5   pctchgLPOP -4.829e-01 1.112e+00   -0.4341   9.233 6.742e-01</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a><span class="co">#&gt; 6         LPOP  7.295e-02 1.083e-02    6.7359  19.749 1.593e-06</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a><span class="co">#&gt; 7         MIL2  9.926e-02 3.987e-02    2.4894  50.175 1.615e-02</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a><span class="co">#&gt; 8         LEFT -1.535e-01 4.934e-02   -3.1120  38.888 3.476e-03</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a><span class="co">#&gt; 9         BRIT -1.216e-01 3.592e-02   -3.3850  43.506 1.518e-03</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a><span class="co">#&gt; 10       POLRT -7.111e-02 1.088e-02   -6.5345  19.262 2.748e-06</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true"></a><span class="co">#&gt; 11     CWARCOW  6.165e-01 6.984e-02    8.8277  16.373 1.259e-07</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true"></a><span class="co">#&gt; 12    IWARCOW2  1.826e-01 5.224e-02    3.4947 971.761 4.960e-04</span></span></code></pre></div>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references hanging-indent">
+<div id="ref-Poeetal1999">
+<p>Poe, Steven, C. Neal Tate, and Linda Camp Keith. 1999. “Repression of the Human Right to Personal Integrity Revisited: A Global, Cross-National Study Covering the Years 1976-1993.” <em>International Studies Quarterly</em> 43: 291–313.</p>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,4 +1,19 @@
-## DA 9/17/14: Added a pass-through path such that if the data are all discrete, the function just returns the original data. 
+#' @title Standardize continuous variables.
+#'
+#' @description
+#' Standardizes (centers and scales) continuous variable in a dataset, leaving discrete variables untouched.
+#'
+#' @usage
+#' scaleContinuous(data, discrete, sdx = 1)
+#'
+#' @param data A data frame or matrix of variables to be scaled.
+#' @param discrete Either a logical vector which is \code{TRUE} for discrete variables and \code{FALSE} for continuous ones or a vector of column numbers of discrete variables.
+#' @param sdx The standard deviation of the columns for the continuous variables.
+#'
+#' @return A data frame with the same dimensions as \code{data} where the continuous variables are centered and scaled.
+#'
+#' @export
+# DA 9/17/14: Added a pass-through path such that if the data are all discrete, the function just returns the original data.
 scaleContinuous <-
 function(data, discrete, sdx=1){
     allNum <- FALSE
@@ -8,7 +23,7 @@ function(data, discrete, sdx=1){
     if(length(discrete) == 0){
         allNum <- TRUE
     }
-    
+
     if(!allNum){
     	if(is.logical(discrete)){
     		discrete <- which(discrete)
